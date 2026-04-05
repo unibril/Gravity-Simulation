@@ -2,11 +2,11 @@ import math
 import time
 import os 
 
-def draw_grid(A,B,grid_size,initial_position,trail):
+def draw_grid(A,B,grid_size,initial_position,trail,g,r):
     os.system('cls')
     grid = [['.'] * grid_size for _ in range(grid_size)]
     scale = grid_size / (initial_position * 2)
-    for tx, ty in trail:
+    for tx, ty, tvx, tvy in trail:
         tr_col = int(grid_size // 2 + tx * scale)
         tr_row = int(grid_size // 2 - ty * scale)
         if 0 <= tr_row < grid_size and 0 <= tr_col < grid_size:
@@ -20,9 +20,18 @@ def draw_grid(A,B,grid_size,initial_position,trail):
     
     for row in grid:
         print(' '.join(row))
-    
-  
-    
+
+    KE = 0.5 * B.mass * (B.vx**2 + B.vy**2)
+    PE = -g * A.mass * B.mass / r
+    E = KE + PE
+    if E < 0:
+         energy_status = "Bound"
+    elif E > 0:
+            energy_status = "Unbound"
+    else:
+        energy_status = "Marginally Bound"
+
+    print(f"Distance: {r:.1f}  |  Speed: {math.hypot(B.vx, B.vy):.1f}  |  Position: ({B.x:.1f}, {B.y:.1f}) |  Energy: {E:.1f}  |  Status: {energy_status}")
 
 class Body:
     def __init__(self, x, y, vx, vy, mass, symbol):
@@ -80,8 +89,27 @@ while True:
     B.x += B.vx * dt
     B.y += B.vy * dt
 
-    trail.append((B.x, B.y))
-    draw_grid(A, B, grid_size=40, initial_position=initial_position, trail=trail)
+    trail.append((B.x, B.y, B.vx, B.vy))
+    draw_grid(A, B, grid_size=40, initial_position=initial_position, trail=trail,g=g,r=r)
     time.sleep(dt)
+
+
+replay = input("Do you want to replay the simulation? (y/n): ")
+if replay.lower().strip() == 'y':
+    print("Replaying simulation...")
+    replay_trail = []
+    for i, (tx, ty, tvx, tvy) in enumerate(trail):
+        B.x = tx
+        B.y = ty
+        B.vx = tvx
+        B.vy = tvy
+        r_replay = math.sqrt((B.x - A.x)**2 + (B.y - A.y)**2)
+        replay_trail.append((B.x, B.y, B.vx, B.vy))
+        draw_grid(A, B, grid_size=40, initial_position=initial_position, trail=replay_trail,g=g,r=r_replay)
+        time.sleep(dt)
+else:
+    print("Simulation ended.")
+
+
     
 
